@@ -59,17 +59,15 @@ long long calculate_seconds(struct DateTime sunrise, struct DateTime sunset)
     // Convert date-times to seconds
     long totalSunriseHours = sunrise.hour * secsPerHour + sunrise.min * secsPerMin + sunrise.sec;
     long totalSunsetHours = sunset.hour * secsPerHour + sunset.min * secsPerMin + sunset.sec;
-    long hourDiff = totalSunriseHours - totalSunsetHours;
-    short decrease = 1;
-    if (hourDiff < 0)
-    {
-        decrease = 0;
+    long hourDiff = totalSunsetHours - totalSunriseHours;
+    if(hourDiff < 0){
+        sunset = addUpDays(sunset, 1);
     }
-    long long totalSunrise = sunrise.year * 365 * secsPerDay + (sunrise.month - 1) * daysInMonth(sunrise.month - 1, sunrise.year) * secsPerDay + (sunrise.day - decrease) * secsPerDay + totalSunriseHours;
+    long long totalSunrise = sunrise.year * 365 * secsPerDay + (sunrise.month - 1) * daysInMonth(sunrise.month - 1, sunrise.year) * secsPerDay + (sunrise.day - 1) * secsPerDay + totalSunriseHours;
     long long totalSunset = sunset.year * 365 * secsPerDay + (sunset.month - 1) * daysInMonth(sunset.month - 1, sunset.year) * secsPerDay + (sunset.day - 1) * secsPerDay + totalSunsetHours;
 
     // Calculate the difference in seconds
-    return totalSunrise - totalSunset;
+    return totalSunset - totalSunrise;
 }
 
 int main(void)
@@ -95,10 +93,6 @@ int main(void)
             start.year = year;
             first = 0;
         }
-        if (rHour == 99 && sHour == 99 && isSunset)
-        {
-            timePassed += 86400;
-        }
         if (rHour != 99 && isSunset)
         {
             sunrise = (struct DateTime){day, month, year, rHour, rMin, rSec};
@@ -107,12 +101,12 @@ int main(void)
         if (sHour != 99 && !isSunset)
         {
             sunset = (struct DateTime){day, month, year, sHour, sMin, sSec};
-            timePassed += calculate_seconds(sunset, sunrise);
+            timePassed += calculate_seconds(sunrise, sunset);
             isSunset = 1;
         }
-        // printf("|%lld|", timePassed);
     }
     struct DateTime finalDate = addUpDays(start, timePassed / 43200);
-    printf("%hd/%hd/%hd \n", finalDate.day, finalDate.month, finalDate.year);
+    printf("%lld", timePassed);
+    printf("%hd/%hd/%hd\n", finalDate.day, finalDate.month, finalDate.year);
     return 0;
 }
