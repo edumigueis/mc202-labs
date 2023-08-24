@@ -1,4 +1,3 @@
-#include <math.h>
 #include <stdio.h>
 
 struct DateTime
@@ -16,6 +15,7 @@ int isLeapYear(int year)
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
+// Returns how many days are in a given month
 int daysInMonth(int month, int year)
 {
     int days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -24,6 +24,7 @@ int daysInMonth(int month, int year)
     return days[month - 1];
 }
 
+// Adds days to date considering month durations and leap years
 struct DateTime addUpDays(struct DateTime date, int numberOfDays)
 {
     while (1)
@@ -52,6 +53,7 @@ struct DateTime addUpDays(struct DateTime date, int numberOfDays)
 
 long long calculate_seconds(struct DateTime sunrise, struct DateTime sunset)
 {
+    // Consts useful for the method
     const int secsPerDay = 86400;
     const int secsPerHour = 3600;
     const int secsPerMin = 60;
@@ -59,19 +61,26 @@ long long calculate_seconds(struct DateTime sunrise, struct DateTime sunset)
     // Convert date-times to seconds
     long totalSunriseHours = sunrise.hour * secsPerHour + sunrise.min * secsPerMin + sunrise.sec;
     long totalSunsetHours = sunset.hour * secsPerHour + sunset.min * secsPerMin + sunset.sec;
-    long hourDiff = totalSunsetHours - totalSunriseHours;
-    if(hourDiff < 0){
+    // If sunset is before sunrise(in hours) it means it happened on the next day
+    if (totalSunsetHours - totalSunriseHours < 0)
+    {
         sunset = addUpDays(sunset, 1);
     }
-    long long totalSunrise = sunrise.year * 365 * secsPerDay + (sunrise.month - 1) * daysInMonth(sunrise.month - 1, sunrise.year) * secsPerDay + (sunrise.day - 1) * secsPerDay + totalSunriseHours;
-    long long totalSunset = sunset.year * 365 * secsPerDay + (sunset.month - 1) * daysInMonth(sunset.month - 1, sunset.year) * secsPerDay + (sunset.day - 1) * secsPerDay + totalSunsetHours;
-
+    // Years and days taken into account
+    long long totalSunrise = sunrise.year * 365 * secsPerDay + sunrise.day * secsPerDay + totalSunriseHours;
+    long long totalSunset = sunset.year * 365 * secsPerDay + sunset.day * secsPerDay + totalSunsetHours;
+    // Months(with different durations) taken into account
+    for (int m = 1; m < sunrise.month; m++)
+        totalSunrise += daysInMonth(m, sunrise.year) * secsPerDay;
+    for (int m = 1; m < sunset.month; m++)
+        totalSunset += daysInMonth(m, sunset.year) * secsPerDay;
     // Calculate the difference in seconds
     return totalSunset - totalSunrise;
 }
 
 int main(void)
 {
+    // Initialize
     struct DateTime start = {0, 0, 0, 0, 0, 0};
     struct DateTime sunset = {0, 0, 0, 0, 0, 0};
     struct DateTime sunrise = {0, 0, 0, 0, 0, 0};
@@ -86,6 +95,7 @@ int main(void)
                  &rHour, &rMin, &rSec,
                  &sHour, &sMin, &sSec) == 9)
     {
+        // First date has to be saved for future counting
         if (first)
         {
             start.day = day;
@@ -98,6 +108,8 @@ int main(void)
             sunrise = (struct DateTime){day, month, year, rHour, rMin, rSec};
             isSunset = 0;
         }
+        // Time is only summed up if there was a sunset(closing in the light cycle)
+        // Because otherwise it is dark or in continuous light
         if (sHour != 99 && !isSunset)
         {
             sunset = (struct DateTime){day, month, year, sHour, sMin, sSec};
@@ -105,8 +117,8 @@ int main(void)
             isSunset = 1;
         }
     }
+    // Divide by number of seconds in 12 hours
     struct DateTime finalDate = addUpDays(start, timePassed / 43200);
-    printf("%lld", timePassed);
     printf("%hd/%hd/%hd\n", finalDate.day, finalDate.month, finalDate.year);
     return 0;
 }
