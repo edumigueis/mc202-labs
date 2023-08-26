@@ -51,7 +51,7 @@ struct DateTime addUpDays(struct DateTime date, int numberOfDays)
     return date;
 }
 
-long long calculate_seconds(struct DateTime sunrise, struct DateTime sunset)
+long long calculateSeconds(struct DateTime sunrise, struct DateTime sunset)
 {
     // Consts useful for the method
     const int secsPerDay = 86400;
@@ -113,7 +113,7 @@ int main(void)
         if (sHour != 99 && !isSunset)
         {
             sunset = (struct DateTime){day, month, year, sHour, sMin, sSec};
-            timePassed += calculate_seconds(sunrise, sunset);
+            timePassed += calculateSeconds(sunrise, sunset);
             isSunset = 1;
         }
     }
