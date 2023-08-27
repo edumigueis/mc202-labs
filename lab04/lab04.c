@@ -1,55 +1,62 @@
 #include <stdio.h>
 #include <math.h>
 
+// Adds up the data sctructure and the array within the i-j range
 int addUpArray(int S[], int R[], int i, int j, int sqroot)
 {
     int ret = 0;
-    int k = i;
-    while (k < j)
+    int k = i; // counter for getting the positions to add up
+    while (k <= j)
     {
-        if (k % sqroot == 0)
+        if (k % sqroot == 0 && k + sqroot <= j)
         {
             k += sqroot;
-            ret += R[k / sqroot];
-            continue;
+            ret += R[(k / sqroot) - 1]; // relative position in R to S
+            continue;                   // adding 1 is not necessary
         }
         ret += S[k];
         k++;
     }
 
-    return 0;
-}
-
-void updateArray(int S[], int R[], int i, int x, int sqrt)
-{
-    int rPos = i / sqrt;
-    R[rPos] = R[rPos] - S[i];
-    S[i] = x;
+    return ret;
 }
 
 int main(void)
 {
-    int n, sqroot, x, i, j;
+    // essential variables
+    int n, x, inp1, inp2;
     scanf("%d", &n);
-    sqroot = (int)sqrt(n);
-    int S[n], R[sqroot];
+    int rsize = ceil(sqrt(n));
+    int S[n], R[rsize];
+
+    // starts up arrays with 0s
+    for (int i = 0; i < n; i++)
+        S[i] = 0;
+    for (int i = 0; i < rsize; i++)
+        R[i] = 0;
+
+    // boots data sctructures(starter values)
     for (int i = 0; i < n; i++)
     {
         scanf("%d", &x);
-        // int rPos = i / sqroot;
-        // R[rPos] = R[rPos] - S[i];
+        int rPos = i / rsize;
         S[i] = x;
+        R[rPos] += x;
     }
+
+    // main loop
     char operation;
-    while (scanf("%c %d %d", &operation, &i, &j) == 3)
+    // reads while input matches
+    while (scanf(" %c %d %d", &operation, &inp1, &inp2) == 3)
     {
         if (operation == 's')
-        {
-            printf("%d", addUpArray(S, R, i, j, sqroot));
-        }
+            printf("%d\n", addUpArray(S, R, inp1, inp2, rsize));
         else
         {
-            updateArray(S, R, i, j, sqroot);
+            int rPos = floor(inp1 / rsize);
+            R[rPos] -= S[inp1]; // subtract previous value and add new from R
+            S[inp1] = inp2;
+            R[rPos] += inp2;
         }
     }
     return 0;
