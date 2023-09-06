@@ -2,12 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-int strLen(char str[])
+// Function to check if a string is a palindrome
+short isPalindrome(const char *str)
 {
-    int count;
-    for (count = 0; str[count] != '\0'; ++count)
-        ;
-    return count;
+    int len = strlen(str);
+    if (len < 3)
+    {
+        return 0; // Palindromes must be at least 3 characters long
+    }
+    for (int i = 0; i < len / 2; i++)
+    {
+        if (str[i] != str[len - i - 1])
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 char *toUpperCase(const char *input)
@@ -44,11 +54,27 @@ char *toUpperCase(const char *input)
     return result;
 }
 
-char *substring(char string[], int start, int end)
+short isContained(char container[], char candidate[])
+{
+    char *result = strstr(container, candidate);
+
+    if (result != NULL)
+    {
+        // Check if str2 is in the middle of str1
+        if (result > container && result + strlen(candidate) < container + strlen(container))
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+
+char *substring(const char string[], int start, int end)
 {
     int length = end - start + 1;
 
-    if (start < 0 || end >= strLen(string) || length <= 0)
+    if (start < 0 || end >= (int)strlen(string) || length <= 0)
     {
         return NULL; // Invalid indices or length
     }
@@ -69,78 +95,97 @@ char *substring(char string[], int start, int end)
     return substring;
 }
 
-short isPalindromic(char *s, int i, int j)
+char **getAllSubpalindromes(const char *str)
 {
-    if (i >= j)
-        return 1;
-
-    if (s[i] != s[j])
-        return 0;
-
-    return isPalindromic(s, i + 1, j - 1);
-}
-
-short isDistinct(char *stringArray[], int arraySize, const char *newString)
-{
-    for (int i = 0; i < arraySize; i++)
-    {
-        if (strcmp(stringArray[i], newString) == 0 || strstr(stringArray[i], newString) != NULL)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-/*for (int i = 0; i < n; i++)
-    {
-        for (int j = i + 2; j < n; j++)
-        {
-            if (isPalindromic(str, i, j) && isDistinct(palindromes, count, substring(str, i, j)))
-            {
-                count++;
-                if (count >= 2)
-                {
-                    return 1; // At least two distinct non-contained palindromic substrings found
-                }
-            }
-        }
-    }*/
-
-short is2Palindrome(char *str)
-{
-    int n = strLen(str);
-
-    if (n < 3)
-        return 0;
-    char *palindromes[250];
+    int n = strlen(str);
     int count = 0;
+    char **subpalindromes = malloc(sizeof(char *) * n * n);
+    char **uniquePalindromes = malloc(sizeof(char *) * n * n);
 
-    for (int len = n; len >= 3; len--) {
-        for (int start = 0; start <= n - len; start++) {
+    for (int len = n; len >= 3; len--)
+    {
+        for (int start = 0; start <= n - len; start++)
+        {
             int end = start + len;
-            char* curr = substring(str, start, end - 1);
-            if (isPalindromic(str, start, end - 1) && isDistinct(palindromes, count, curr))
+            char *curr = substring(str, start, end - 1);
+            if (isPalindrome(curr))
             {
-                palindromes[count] = curr;
-                count++;
-                if (count >= 2)
+                int isDuplicate = 0;
+
+                // Check for duplicates
+                for (int i = 0; i < count; i++)
                 {
-                    return 1; // At least two distinct non-contained palindromic substrings found
+                    if (strcmp(curr, uniquePalindromes[i]) == 0)
+                    {
+                        isDuplicate = 1;
+                        break;
+                    }
                 }
+
+                if (!isDuplicate)
+                {
+                    uniquePalindromes[count] = curr;
+                    count++;
+                }
+                else
+                {
+                    free(curr); // Free memory for duplicates
+                }
+            }
+            else
+            {
+                free(curr); // Free memory for non-palindromic substrings
             }
         }
     }
 
+    char **res = malloc(sizeof(char *) * (count + 1)); // Allocate memory for the result
+    for (int i = 0; i < count; i++)
+    {
+        res[i] = uniquePalindromes[i];
+    }
+    res[count] = NULL; // Null-terminate the array
+
+    // Free memory
+    free(subpalindromes);
+    free(uniquePalindromes);
+
+    return res;
+}
+
+short is2Palindrome(char *subpalindromes[])
+{
+    short count = 0;
+    short n = 0;
+    while (subpalindromes[n] != NULL)
+    {
+        //printf("%s|", subpalindromes[n]);
+        n++;
+    }
+    short isDistinct = 1;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (isContained(subpalindromes[j], subpalindromes[i]))
+                isDistinct = 0;
+        }
+        if (isDistinct)
+            count++;
+        if (count >= 2)
+            return 1;
+        isDistinct = 1;
+    }
     return 0;
 }
 
-int main(void)
+int main()
 {
-    char word[] = "";
+    char word[256];
     while (scanf("%s", word) == 1)
-        if (is2Palindrome(toUpperCase(word)) != 0)
-            printf("%s", word);
+        if (is2Palindrome(getAllSubpalindromes(toUpperCase(word))))
+            printf("%s\n", word);
     printf("\n");
+
     return 0;
 }
