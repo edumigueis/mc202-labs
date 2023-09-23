@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 #define MAX_SIZE 250
 
