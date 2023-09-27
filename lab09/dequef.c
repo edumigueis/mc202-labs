@@ -1,7 +1,5 @@
 #include <stdlib.h>
-#include <errno.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "dequef.h"
 
@@ -30,7 +28,7 @@ dequef *df_alloc(long capacity, double factor)
       }
       else
       {
-         // Allocation of data array failed, clean up and return NULL
+         free(deque->data);
          free(deque);
          deque = NULL;
       }
@@ -54,15 +52,16 @@ int df_resize(dequef *D, long nCap)
       if (nData != NULL)
       {
          for (long i = 0; i < D->size; i++)
-         {
             nData[i] = D->data[(D->first + i) % D->cap];
-         }
 
+         free(D->data);
          D->data = nData;
          D->first = 0;
-         D->cap = nData;
+         D->cap = nCap;
          return 1;
       }
+      else
+         free(nData);
    }
    return 0;
 }
@@ -133,9 +132,7 @@ float df_pop(dequef *D)
    }
 
    if (D->size == 0)
-   {
       D->first = 0;
-   }
 
    return ret;
 }
@@ -181,28 +178,20 @@ float df_eject(dequef *D)
    if (D->size == 0)
       return 0.0;
 
-   // Calculate the index of the element to be ejected
-   int eject_index = D->first;
+   float ejected = D->data[D->first];
 
-   // Retrieve the element to be ejected
-   float ejected_element = D->data[eject_index];
-
-   // Update the 'first' index and decrement the size of the deque
    D->first = (D->first + 1) % D->cap;
    D->size--;
 
-   // Check if resizing is necessary based on the condition capacity / (factor^2)
    if (D->size < D->cap / (D->factor * D->factor))
    {
       long new_capacity = D->cap / D->factor;
       if (new_capacity < D->mincap)
-      {
          new_capacity = D->mincap;
-      }
       df_resize(D, new_capacity);
    }
 
-   return ejected_element;
+   return ejected;
 }
 
 /**
@@ -239,6 +228,8 @@ float df_get(dequef *D, long i)
 **/
 void df_print(dequef *D)
 {
-   for (long i = 0; i < &D->size; i++)
-      printf("%f ", df_get(D, i));
+   printf("deque (%ld): ", D->size);
+   for (long i = 0; i < D->size; i++)
+      printf("%.1f ", D->data[(D->first + i) % D->cap]);
+   printf("\n");
 }

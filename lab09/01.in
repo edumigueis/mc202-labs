@@ -1,0 +1,24 @@
+create 16 2.0
+push 3.14159
+inject 2.71828
+inject 0
+push -1.732
+push -1.618034
+print
+is-empty?
+get 0
+get 1
+get 4
+get 3
+eject
+pop
+get 0
+get 1
+get 2
+is-empty?
+pop
+pop
+eject
+is-empty?
+print
+exit
