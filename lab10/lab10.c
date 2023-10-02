@@ -30,19 +30,23 @@ typedef struct Matrix Matrix;
 void m_free(Matrix *m)
 {
     Line *curr = m->head;
+    Line *aux_line;
+    Cell *curr_cell;
+    Cell *aux_cell;
+
     while (curr)
     {
-        Cell *curr_cell = curr->first;
+        curr_cell = curr->first;
         while (curr_cell)
         {
-            Cell *aux = curr_cell;
+            aux_cell = curr_cell;
             curr_cell = curr_cell->next;
-            free(aux);
+            free(aux_cell);
         }
 
-        Line *aux = curr;
+        aux_line = curr;
         curr = curr->next;
-        free(aux);
+        free(aux_line);
     }
 
     // Free the matrix itself
@@ -86,8 +90,28 @@ void m_set(Matrix *m, int i, int j, int x)
     }
 
     if (c && c->column == j)
-        c->value = x;
-    else
+        if (x == 0)
+        {
+            if (prev_c)
+                prev_c->next = c->next;
+            else
+            {
+                p->first = c->next;
+                if (!p->first)
+                {
+                    if (prev)
+                        prev->next = p->next;
+                    else
+                        m->head = p->next;
+                    free(p);
+                }
+            }
+            free(c);
+            return;
+        }
+        else
+            c->value = x;
+    else if (x != 0)
     {
         Cell *nc = malloc(sizeof(Cell));
         if (!nc)
@@ -103,7 +127,7 @@ void m_set(Matrix *m, int i, int j, int x)
     }
 }
 
-int m_remove(Matrix *m, int i, int j)
+int m_retrieve(Matrix *m, int i, int j)
 {
     if (!m || !m->head)
         return 0; // Indicate failure
@@ -115,42 +139,30 @@ int m_remove(Matrix *m, int i, int j)
     if (!p || p->row != i)
         return 0; // Indicate failure
 
-    Cell *curr = p->first;
-    Cell *prev = NULL;
+    Cell *c = p->first;
 
-    while (curr && curr->column != j)
-    {
-        prev = curr;
-        curr = curr->next;
-    }
+    while (c && c->column < j)
+        c = c->next;
 
-    if (!curr || curr->column != j)
+    if (!c || c->column != j)
         return 0; // Indicate failure
 
-    int ret = curr->value;
-
-    if (prev)
-        prev->next = curr->next;
-    else
-        p->first = curr->next;
-
-    free(curr);
-
-    return ret;
+    return c->value;
 }
 
 int m_print(Matrix *m)
 {
-    if (!m)
+    if (!m || !m->head)
         return 0;
-    printf("M:");
+    printf("M: ");
     Line *curr = m->head;
+    Cell *curr_cell = curr->first;
     while (curr)
     {
-        Cell *curr_cell = curr->first;
+        curr_cell = curr->first;
         while (curr_cell)
         {
-            printf(" (%d,%d,%d)", curr->row, curr_cell->column, curr_cell->value);
+            printf("(%d,%d,%d) ", curr->row, curr_cell->column, curr_cell->value);
             curr_cell = curr_cell->next;
         }
         curr = curr->next;
@@ -161,7 +173,7 @@ int m_print(Matrix *m)
 int main(void)
 {
     char cmd;
-    int i, j;
+    int i, j, x;
     Matrix *m = NULL;
 
     while (1)
@@ -182,26 +194,21 @@ int main(void)
         }
         else if (cmd == 'a')
         {
-            int x;
             scanf("[%d,%d] %d ", &i, &j, &x);
             m_set(m, i, j, x);
         }
-
         else if (cmd == 'r')
         {
             scanf("[%d,%d] ", &i, &j);
-            printf("M[%d][%d] == %d\n", i, j, m_remove(m, i, j));
+            printf("M[%d][%d] == %d\n", i, j, m_retrieve(m, i, j));
         }
-
         else if (cmd == 'p')
         {
-            int res = m_print(m);
-            if (res == 0)
-                printf("A matriz e' nula.");
+            if (m_print(m) == 0)
+                printf("A matriz e' nula.\n");
             else
                 printf("\n");
         }
-
         else if (cmd == 't')
         {
             m_free(m);
