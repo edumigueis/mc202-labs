@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
 
+// Define the Cell structure for a matrix element
 struct Cell
 {
     int column;
@@ -9,6 +9,7 @@ struct Cell
     struct Cell *next;
 };
 
+// Define the Line structure for a row in the matrix
 typedef struct Cell Cell;
 
 struct Line
@@ -20,6 +21,7 @@ struct Line
 
 typedef struct Line Line;
 
+// Define the Matrix structure that contains the head of the lines
 struct Matrix
 {
     Line *head;
@@ -27,6 +29,7 @@ struct Matrix
 
 typedef struct Matrix Matrix;
 
+// Function to free memory allocated for the matrix
 void m_free(Matrix *m)
 {
     Line *curr = m->head;
@@ -53,11 +56,13 @@ void m_free(Matrix *m)
     free(m);
 }
 
+// Function to set a value in the matrix
 void m_set(Matrix *m, int i, int j, int x)
 {
     Line *p = m->head;
     Line *prev = NULL;
 
+    // Find the appropriate row to keep order (Line)
     while (p && p->row < i)
     {
         prev = p;
@@ -66,6 +71,7 @@ void m_set(Matrix *m, int i, int j, int x)
 
     if (!p || p->row != i)
     {
+        // Create a new Line if it doesn't exist
         Line *nl = malloc(sizeof(Line));
         if (!nl)
             return; // Memory allocation failed
@@ -83,6 +89,7 @@ void m_set(Matrix *m, int i, int j, int x)
     Cell *c = p->first;
     Cell *prev_c = NULL;
 
+    // Find the appropriate column to keep order(Cell)
     while (c && c->column < j)
     {
         prev_c = c;
@@ -90,14 +97,14 @@ void m_set(Matrix *m, int i, int j, int x)
     }
 
     if (c && c->column == j)
-        if (x == 0)
+        if (x == 0) // value removal
         {
-            if (prev_c)
+            if (prev_c) // there is a cell before
                 prev_c->next = c->next;
-            else
+            else // is the first cell in row or row is empty
             {
                 p->first = c->next;
-                if (!p->first)
+                if (!p->first) // if the row is empty we alter the rows
                 {
                     if (prev)
                         prev->next = p->next;
@@ -110,9 +117,10 @@ void m_set(Matrix *m, int i, int j, int x)
             return;
         }
         else
-            c->value = x;
+            c->value = x; // cell alteration
     else if (x != 0)
     {
+        // Create a new Cell if it doesn't exist and x is not 0(is an addition)
         Cell *nc = malloc(sizeof(Cell));
         if (!nc)
             return; // Memory allocation failed
@@ -127,6 +135,7 @@ void m_set(Matrix *m, int i, int j, int x)
     }
 }
 
+// Function to retrieve a value from the matrix
 int m_retrieve(Matrix *m, int i, int j)
 {
     if (!m || !m->head)
@@ -150,6 +159,7 @@ int m_retrieve(Matrix *m, int i, int j)
     return c->value;
 }
 
+// Function to print the matrix
 int m_print(Matrix *m)
 {
     if (!m || !m->head)
@@ -157,10 +167,10 @@ int m_print(Matrix *m)
     printf("M: ");
     Line *curr = m->head;
     Cell *curr_cell = curr->first;
-    while (curr)
+    while (curr) // iterate rows
     {
         curr_cell = curr->first;
-        while (curr_cell)
+        while (curr_cell) // iterate columns(cells in row)
         {
             printf("(%d,%d,%d) ", curr->row, curr_cell->column, curr_cell->value);
             curr_cell = curr_cell->next;
@@ -188,7 +198,7 @@ int main(void)
             if (m == NULL)
             {
                 printf("Unable to create a matrix.\n");
-                return errno ? errno : 1;
+                return 1;
             }
             m->head = NULL;
         }
