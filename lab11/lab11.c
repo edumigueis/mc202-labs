@@ -64,33 +64,30 @@ void l_insert(GenericList *l, char t, void *x)
 void l_reverse(GenericList *l, int i, int j)
 {
     if (!l->head || i == j)
-    {
         return;
-    }
 
-    Node *sRev = NULL; // start
-    Node *bRev = NULL; // before
-    Node *eRev = NULL; // end
-    Node *aRev = NULL; // after
-    int c = 1;
+    Node *start, *end; // start and end nodes of reversal
+    int c = 0;
 
-    Node *curr = l->head;
-    Node *prev = NULL;
+    Node *curr = l->head; // current node
+    Node *prev = NULL; // previous node on iteration
+    Node *before = NULL; // node before the reversal interval
+    Node *after = NULL; // node after the reversal interval
 
     while (c <= j && curr != NULL)
     {
         Node *next = curr->next;
         if (c < i)
-            bRev = curr;
+            before = curr;
         else if (c == i)
         {
-            sRev = curr;
-            eRev = curr;
+            start = curr;
+            end = curr;
         }
         else if (c == j)
         {
-            eRev = curr;
-            aRev = next;
+            end = curr;
+            after = next;
         }
         if (c >= i)
             curr->next = prev;
@@ -100,12 +97,12 @@ void l_reverse(GenericList *l, int i, int j)
         c++;
     }
 
-    if (bRev != NULL)
-        bRev->next = eRev;
+    if (before != NULL)
+        before->next = end;
     else
-        l->head = eRev;
+        l->head = end;
 
-    sRev->next = aRev;
+    start->next = after;
 }
 
 void l_transpose(GenericList *l, int i, int j, int k)
@@ -117,7 +114,7 @@ void l_transpose(GenericList *l, int i, int j, int k)
     Node *prevP = NULL;
     Node *q = l->head;
 
-    for (; i > 0; i--)
+    for (int count = i; count > 0; count--)
     {
         prevP = p;
         p = p->next;
@@ -127,7 +124,6 @@ void l_transpose(GenericList *l, int i, int j, int k)
         q = q->next;
 
     Node *qAux = q->next;
-    Node *pAux = q->next;
     q->next = p;
 
     while (i++ < j)
