@@ -37,6 +37,9 @@ void l_free(GenericList *l)
 
 void l_insert(GenericList *l, char t, void *x)
 {
+    if (x == NULL)
+        return;
+
     Node *p = l->head;
 
     if (!p)
@@ -66,13 +69,14 @@ void l_reverse(GenericList *l, int i, int j)
     if (!l->head || i == j)
         return;
 
-    Node *start, *end; // start and end nodes of reversal
+    Node *start = NULL;
+    Node *end = NULL; // start and end nodes of reversal
     int c = 0;
 
     Node *curr = l->head; // current node
-    Node *prev = NULL; // previous node on iteration
-    Node *before = NULL; // node before the reversal interval
-    Node *after = NULL; // node after the reversal interval
+    Node *prev = NULL;    // previous node on iteration
+    Node *before = NULL;  // node before the reversal interval
+    Node *after = NULL;   // node after the reversal interval
 
     while (c <= j && curr != NULL)
     {
@@ -107,24 +111,30 @@ void l_reverse(GenericList *l, int i, int j)
 
 void l_transpose(GenericList *l, int i, int j, int k)
 {
-    if (!l || !l->head || j < i)
+    if (!l || !l->head || j < i || (k > i && k < j))
         return;
 
     Node *p = l->head;
     Node *prevP = NULL;
     Node *q = l->head;
 
-    for (int count = i; count > 0; count--)
+    for (int count = i; count > 0; count--) // point to start transposal
     {
         prevP = p;
         p = p->next;
     }
 
-    for (; k > 0; k--)
+    for (; k > 0; k--) // point to insert
         q = q->next;
 
-    Node *qAux = q->next;
-    q->next = p;
+    Node *qAux = q;
+    Node *pAux = p;
+
+    if (k >= 0)
+    {
+        qAux = q->next;
+        q->next = p;
+    }
 
     while (i++ < j)
         p = p->next;
@@ -135,6 +145,8 @@ void l_transpose(GenericList *l, int i, int j, int k)
         prevP->next = p->next;
 
     p->next = qAux;
+    if (k == -1)
+        l->head = pAux;
 }
 
 // Function to print the list
@@ -154,7 +166,7 @@ void l_print(GenericList *l)
             printf("%d ", *(int *)curr->data);
             break;
         case 'f':
-            printf("%f ", *(float *)curr->data);
+            printf("%.4f ", *(float *)curr->data);
             break;
         case 'c':
             printf("%c ", *(int *)curr->data);
@@ -169,7 +181,7 @@ int main(void)
 {
     char cmd, t;
     int i, j, k;
-    void *x;
+    void *x = NULL;
     GenericList *l = NULL;
 
     while (1)
