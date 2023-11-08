@@ -36,6 +36,7 @@ void l_free(GenericList *l)
     free(l);
 }
 
+// Method to insert into generic linked list
 void l_insert(GenericList *l, char t, void *x)
 {
     if (x == NULL)
@@ -65,6 +66,7 @@ void l_insert(GenericList *l, char t, void *x)
     p->next = newNode;
 }
 
+// Method to reverse in range
 void l_reverse(GenericList *l, int i, int j)
 {
     if (!l || !l->head || i >= j)
@@ -110,6 +112,7 @@ void l_reverse(GenericList *l, int i, int j)
     start->next = after;
 }
 
+// Method to transpose inclusive range to index
 void l_transpose(GenericList *l, int i, int j, int k)
 {
     if (!l || !l->head || j < i || (k > i && k < j) || k == i - 1)
@@ -141,7 +144,7 @@ void l_transpose(GenericList *l, int i, int j, int k)
     while (i++ < j) // from start to end of range
         p = p->next;
 
-    if (!prevP)
+    if (!prevP) // range is in the start of the list
         l->head = p->next;
     else
         prevP->next = p->next;
@@ -155,24 +158,24 @@ void l_transpose(GenericList *l, int i, int j, int k)
 void l_print(GenericList *l)
 {
     if (!l || !l->head)
-        return;
+        printf("\n");
     Node *curr = l->head;
     while (curr) // iterate rows
     {
         switch (curr->type) // each type has a different scanf
         {
-            case 's':
-                printf("%s ", (char *)curr->data);
-                break;
-            case 'd':
-                printf("%d ", *(int *)curr->data);
-                break;
-            case 'f':
-                printf("%.4f ", *(float *)curr->data);
-                break;
-            case 'c':
-                printf("%c ", *(int *)curr->data);
-                break;
+        case 's':
+            printf("%s ", (char *)curr->data);
+            break;
+        case 'd':
+            printf("%d ", *(int *)curr->data);
+            break;
+        case 'f':
+            printf("%.4f ", *(float *)curr->data);
+            break;
+        case 'c':
+            printf("%c ", *(int *)curr->data);
+            break;
         }
         curr = curr->next;
     }
@@ -208,22 +211,22 @@ int main(void)
 
             switch (t)
             {
-                case 's':
-                    x = malloc(sizeof(char) * 127); // Allocate memory for string
-                    scanf(" %s", (char *)x);
-                    break;
-                case 'd':
-                    x = malloc(sizeof(int));
-                    scanf(" %d", (int *)x);
-                    break;
-                case 'f':
-                    x = malloc(sizeof(float));
-                    scanf(" %f", (float *)x);
-                    break;
-                case 'c':
-                    x = malloc(sizeof(char));
-                    scanf(" %c", (char *)x);
-                    break;
+            case 's':
+                x = malloc(sizeof(char) * 127); // Allocate memory for string
+                scanf(" %[^\n]", (char *)x);    // reads until line since there can be empty spaces
+                break;
+            case 'd':
+                x = malloc(sizeof(int));
+                scanf(" %d", (int *)x);
+                break;
+            case 'f':
+                x = malloc(sizeof(float));
+                scanf(" %f", (float *)x);
+                break;
+            case 'c':
+                x = malloc(sizeof(char));
+                scanf(" %c", (char *)x);
+                break;
             }
 
             l_insert(l, t, x);
