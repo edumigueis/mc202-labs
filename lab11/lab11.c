@@ -157,8 +157,6 @@ void l_transpose(GenericList *l, int i, int j, int k)
 // Function to print the list
 void l_print(GenericList *l)
 {
-    if (!l || !l->head)
-        printf("\n");
     Node *curr = l->head;
     while (curr) // iterate rows
     {
