@@ -1,0 +1,4 @@
+[it doesnt matter] nao esta na tabela
+[It doesnt matter] esta na tabela, timestamp 0
+[the way that you make it,] esta na tabela, timestamp 2
+[the way that you make it,] nao esta na tabela
