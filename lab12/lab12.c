@@ -19,6 +19,7 @@ typedef struct HashTable
     int count;
 } HashTable;
 
+// Initialize a hash table with a specified size
 int init(HashTable *ht, int size)
 {
     ht->size = size * 2;
@@ -29,6 +30,7 @@ int init(HashTable *ht, int size)
     return 1;
 }
 
+// Free memory allocated for the hash table
 void free_hashtable(HashTable *ht)
 {
     for (int i = 0; i < ht->size; i++)
@@ -41,7 +43,7 @@ void free_hashtable(HashTable *ht)
     free(ht);
 }
 
-unsigned long djb2_hash(char *str)
+unsigned long djb2_hash(char *str) // DJB2 hash function
 {
     unsigned long hash = 5381;
     int c;
@@ -52,7 +54,7 @@ unsigned long djb2_hash(char *str)
     return hash;
 }
 
-unsigned long xor_hash(char *key)
+unsigned long xor_hash(char *key) // XOR hash function
 {
     unsigned long hash_value = 0;
     int c;
@@ -65,14 +67,14 @@ unsigned long xor_hash(char *key)
     return hash_value;
 }
 
-unsigned long double_hashing(char *key, int i, int size)
+unsigned long double_hashing(char *key, int i, int size) // Double hashing function
 {
     unsigned long first_hash = djb2_hash(key);
     unsigned long second_hash = xor_hash(key);
     return (first_hash + i * second_hash) % size;
 }
 
-char *my_strdup(const char *str)
+char *my_strdup(const char *str) // Custom strdup function
 {
     if (str == NULL)
         return NULL;
@@ -88,6 +90,7 @@ char *my_strdup(const char *str)
     return new_str;
 }
 
+// Insert a key-value pair into the hash table
 int insert_key(HashTable *ht, char *item, int timestamp)
 {
     if (ht->count == ht->size)
@@ -119,6 +122,7 @@ int insert_key(HashTable *ht, char *item, int timestamp)
     return timestamp;
 }
 
+// Remove a key from the hash table
 void remove_key(HashTable *ht, char *key)
 {
     int i = 0;
@@ -146,6 +150,7 @@ void remove_key(HashTable *ht, char *key)
     return;
 }
 
+// Get the timestamp associated with a key in the hash table
 int get_timestamp(HashTable *ht, char *key)
 {
     int i = 0;
