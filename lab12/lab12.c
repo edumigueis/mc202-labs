@@ -189,7 +189,10 @@ int main(void)
         {
             scanf(" %d", &size);
             if (ht != NULL)
+            {
                 free_hashtable(ht);
+                timestamp = 0;
+            }
             ht = (HashTable *)malloc(sizeof(HashTable));
             int worked = init(ht, size);
             if (!worked || ht == NULL)
