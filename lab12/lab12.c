@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #define MAX_STR_SIZE 250
 #define SCANF_FORMAT "%249[^\n]"
+#define REMOVED_KEY_MARKER "###REMOVED###"
 
 typedef struct KeyPair
 {
@@ -19,6 +21,18 @@ typedef struct HashTable
     int count;
 } HashTable;
 
+// Free memory allocated for the hash table
+void free_hashtable(HashTable *ht)
+{
+    for (int i = 0; i < ht->size; i++)
+    {
+        free(ht->items[i]->key);
+        free(ht->items[i]);
+    }
+    free(ht->items);
+    free(ht);
+}
+
 // Initialize a hash table with a specified size
 int init(HashTable *ht, int size)
 {
@@ -27,20 +41,17 @@ int init(HashTable *ht, int size)
     ht->items = (KeyPair **)calloc(ht->size, sizeof(KeyPair *));
     if (ht->items == NULL)
         return 0;
-    return 1;
-}
-
-// Free memory allocated for the hash table
-void free_hashtable(HashTable *ht)
-{
     for (int i = 0; i < ht->size; i++)
     {
-        if (ht->items[i])
-            free(ht->items[i]->key);
-        free(ht->items[i]);
+        ht->items[i] = (KeyPair *)malloc(sizeof(KeyPair));
+        if (ht->items[i] == NULL)
+        {
+            free_hashtable(ht);
+            return 0;
+        }
+        ht->items[i]->key = NULL; // Initialize key to NULL
     }
-    free(ht->items);
-    free(ht);
+    return 1;
 }
 
 unsigned long djb2_hash(char *str) // DJB2 hash function
@@ -91,35 +102,27 @@ char *my_strdup(const char *str) // Custom strdup function
 }
 
 // Insert a key-value pair into the hash table
-int insert_key(HashTable *ht, char *item, int timestamp)
+void insert_key(HashTable *ht, char *item, int timestamp)
 {
     if (ht->count == ht->size)
-        return timestamp;
+        return;
 
-    KeyPair *new = (KeyPair *)malloc(sizeof(KeyPair));
-    if (new == NULL)
-        return timestamp;
-    new->key = my_strdup(item);
-    new->value = timestamp;
     int i = 0;
 
     do
     {
         int index = double_hashing(item, i, ht->size);
 
-        if (ht->items[index] == NULL)
+        if (ht->items[index]->key == NULL || strcmp(ht->items[index]->key, REMOVED_KEY_MARKER) == 0)
         {
-            ht->items[index] = new;
-            return timestamp;
+            ht->items[index]->key = my_strdup(item);
+            ht->items[index]->value = timestamp;
+            return;
         }
-
-        if (strcmp(ht->items[index]->key, item) == 0)
-            timestamp--;
         i++;
     } while (i < ht->size);
 
     ht->count++;
-    return timestamp;
 }
 
 // Remove a key from the hash table
@@ -132,22 +135,19 @@ void remove_key(HashTable *ht, char *key)
     {
         index = double_hashing(key, i, ht->size);
 
-        if (ht->items[index] == NULL)
+        if (ht->items[index]->key == NULL)
             return;
 
         if (strcmp(ht->items[index]->key, key) == 0)
         {
             free(ht->items[index]->key);
-            free(ht->items[index]);
-            ht->items[index] = NULL;
+            ht->items[index]->key = my_strdup(REMOVED_KEY_MARKER);
             return;
         }
 
         // Collision occurred, so we try the next position
         i++;
     } while (i < ht->size);
-
-    return;
 }
 
 // Get the timestamp associated with a key in the hash table
@@ -160,7 +160,7 @@ int get_timestamp(HashTable *ht, char *key)
     {
         index = double_hashing(key, i, ht->size);
 
-        if (ht->items[index] == NULL)
+        if (ht->items[index]->key == NULL)
             return -1;
 
         if (strcmp(ht->items[index]->key, key) == 0)
@@ -201,7 +201,11 @@ int main(void)
         else if (cmd == 'i')
         {
             scanf(SCANF_FORMAT, str);
-            timestamp = insert_key(ht, str, timestamp) + 1;
+            if (get_timestamp(ht, str) == -1)
+            {
+                insert_key(ht, str, timestamp);
+                timestamp++;
+            }
         }
         else if (cmd == 'r')
         {
