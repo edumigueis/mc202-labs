@@ -40,7 +40,7 @@ void free_heap(InMinHeap *heap)
 }
 
 // exchange two items in the heap
-void swap(Item *a, Item *b)
+void exchange(Item *a, Item *b)
 {
     Item aux = *a;
     *a = *b;
@@ -52,14 +52,14 @@ void heapify_up(InMinHeap *minHeap, int index)
 {
     while (index > 0)
     {
-        int parentIndex = (index - 1) / 2;
-        if (minHeap->heap[parentIndex].cost > minHeap->heap[index].cost)
+        int parent = (index - 1) / 2;
+        if (minHeap->heap[parent].cost > minHeap->heap[index].cost)
         {
             // Swap the element with its parent if necessary
-            swap(&minHeap->heap[parentIndex], &minHeap->heap[index]);
-            minHeap->indexes[minHeap->heap[parentIndex].key] = parentIndex;
+            exchange(&minHeap->heap[parent], &minHeap->heap[index]);
+            minHeap->indexes[minHeap->heap[parent].key] = parent;
             minHeap->indexes[minHeap->heap[index].key] = index;
-            index = parentIndex;
+            index = parent;
         }
         else
             break;
@@ -86,7 +86,7 @@ void heapify_down(InMinHeap *minHeap, int index)
         if (smallest != index)
         {
             // Swap the element with the smallest child if necessary
-            swap(&minHeap->heap[index], &minHeap->heap[smallest]);
+            exchange(&minHeap->heap[index], &minHeap->heap[smallest]);
             minHeap->indexes[minHeap->heap[index].key] = index;
             minHeap->indexes[minHeap->heap[smallest].key] = smallest;
             index = smallest;
@@ -106,6 +106,7 @@ void insert_key(InMinHeap *minHeap, int key, int cost)
     int index = minHeap->size;
     minHeap->heap[index].key = key;
     minHeap->heap[index].cost = cost;
+
     minHeap->indexes[key] = index;
     minHeap->size++;
 
@@ -114,19 +115,17 @@ void insert_key(InMinHeap *minHeap, int key, int cost)
 
 Item *remove_min(InMinHeap *minHeap)
 {
-    if (minHeap->size == 0)
-        return NULL;
-
     // Allocate memory for the minimum element
     Item *minItem = (Item *)malloc(sizeof(Item));
-    if (minItem == NULL)
+
+    if (minHeap->size == 0 || minItem == NULL) // nothing to remove or failed allocation
         return NULL;
 
     *minItem = minHeap->heap[0];
 
     // Swap the root with the last element and heapify down
     int last = minHeap->size - 1;
-    swap(&minHeap->heap[0], &minHeap->heap[last]);
+    exchange(&minHeap->heap[0], &minHeap->heap[last]);
     minHeap->indexes[minHeap->heap[0].key] = 0;
     minHeap->indexes[minHeap->heap[last].key] = -1;
     minHeap->size--;
@@ -136,20 +135,21 @@ Item *remove_min(InMinHeap *minHeap)
     return minItem;
 }
 
-void update_cost(InMinHeap *minHeap, int key, int newValue)
+void update_cost(InMinHeap *minHeap, int key, int new)
 {
     int index = minHeap->indexes[key];
     if (index == -1)
         return;
 
     // Update the cost associated with the key
-    int oldValue = minHeap->heap[index].cost;
-    minHeap->heap[index].cost = newValue;
+    int old = minHeap->heap[index].cost;
+    minHeap->heap[index].cost = new;
 
-    if (newValue < oldValue)
-        heapify_up(minHeap, index);
-    else
+    // Updating the heap based on the new value compared to the prior value
+    if (new >= old)
         heapify_down(minHeap, index);
+    else
+        heapify_up(minHeap, index);
 }
 
 int main(void)
