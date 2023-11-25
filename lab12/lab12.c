@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define MAX_STR_SIZE 250
-#define SCANF_FORMAT "%249[^\n]"
+#define SCANF_FORMAT "%250[^\n]"
 #define REMOVED_KEY_MARKER "###REMOVED###"
 
 typedef struct KeyPair
@@ -71,9 +71,7 @@ unsigned long xor_hash(char *key) // XOR hash function
     int c;
 
     while ((c = *key++))
-    {
         hash_value = ((hash_value << 4) + hash_value) ^ c;
-    }
 
     return hash_value;
 }
